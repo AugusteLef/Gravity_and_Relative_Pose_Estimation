@@ -1,164 +1,43 @@
-## File Structure
-Some scripts may assume the following file-structure (you might have to create missing directories):
-- Data : Directory containing all training-, test- and preprocessed data
-- Predictions : Directory containing all predictions for test-set.
-- Preprocessing_Data : Directory containing wordlists and other data used for preprocessing.
-- LectureBaselines : Directory containing implementations of the baselines from the exercises. A separate ReadMe can be found here with instructions on how to reproduce the baselines.
-- Output_pp : Directory for all output (logging) files related to preprocessing
-- Output_predicting : Directory for all output (logging) files related to inference on the test-set.
-- Output_huggingface : Directory for all output (logging) files related to training the huggingface models.
-- Output_ensembles : Directory for all output (logging) files related to training the ensembles.
-
-The following python scripts should be contained in the main project folder:
-- preprocessing.py : Used for preprocessing data-sets with different preprocessing methods.
-- training_*.py : Training scripts for huggingface models and our ensemble models.
-- inference_*.py : Scripts used to create predictions for the test set.
-- utils_*.py : Contains some useful code-snippets used in the above scripts.
-
-All our experiments can be reproduced by running the following files with 'source' on the Leonhard cluster (more details under 'Workflow' below):
-- preprocess_all : Schedules all preprocessing jobs needed in this project. These jobs roughly take up to 1h to finish.
-- train_huggingface : Schedules all jobs for training huggingface models. These jobs roughly take 24h to finish.
-- train_ensembles : Schedules all jobs for training ensembles. These jobs roughly take 24h to finish.
-- predict_all : Schedules all jobs for making predictions on the test-set. These jobs don't take more than a few minutes to finish.
-
 ## Dataset
 
-[All the preprocessed datasets used for our experiments can be directly downloaded on this [polbyox](https://polybox.ethz.ch/index.php/s/6FXs2MQqnVHvPiJ), password: data]
+We used the ScanNet Dataset. ScanNet is an RGB-D video dataset containing 2.5 million views in more than 1500 scans, annotated with 3D camera poses, surface reconstructions, and instance-level semantic segmentations. You can find the website of the Dataset [here](http://www.scan-net.org/#code-and-data) and the github [here](https://github.com/ScanNet/ScanNet).
 
-Download the tweet dataset:
-```
-wget http://www.da.inf.ethz.ch/teaching/2018/CIL/material/exercise/twitter-datasets.zip
-```
-Move it to the Data directory:
-```
-unzip twitter-datasets.zip
-
-mkdir Data
-
-mv twitter-datasets/* Data
-```
-The dataset should contain the following files:
-- sample_submission.csv
-- train_neg.txt : a subset of negative training samples
-- train_pos.txt: a subset of positive training samples
-- test_data.txt:
-- train_neg_full.txt: the full negative training samples
-- train_pos_full.txt: the full positive training samples
+Note that in order to dowload the dataset you need to ask for the authorization. Therefore we only put a sample of the dataset for both privicy and storage reason in the "/Dataset" folder.
 
 ## Additional Datasets
-Download the datasets directly from kaggle competition: [Sentiment140](https://www.kaggle.com/kazanova/sentiment140?select=training.1600000.processed.noemoticon.csv) and [Tweet Sentiment Extraction](https://www.kaggle.com/c/tweet-sentiment-extraction/data?select=train.csv) or directly via the [polybox link](https://polybox.ethz.ch/index.php/s/hKKm1H0hD4lmr6t) using the following password: AddDatasets
 
+In order to use the UpRightNet model implementation from [zhengqili](https://github.com/zhengqili/UprightNet) we also had to use a pre-processed version of the ScanNet dataset. Download pre-processed InteriorNet and ScanNet, as well as their corresponding training/validation/testing txt files from [link](https://drive.google.com/drive/folders/1WdNAESqDYcUPQyXAW6PvlcdQIYlOEXIw). The dataset is very large therefore we only put a sample of it in the folder "/Dataset" for information purpose only.
 
-Match the format of the original dataset and create a positive and negative datasets (save them in Data/):
-- For the dataset from [Sentiment140](https://www.kaggle.com/kazanova/sentiment140?select=training.1600000.processed.noemoticon.csv)
-```
-python3 additional_dataset_1.py dataset1.csv
+## PoseLibUpgrade
 
-```
-- For the dataset from [Tweet Sentiment Extraction](https://www.kaggle.com/c/tweet-sentiment-extraction/data?select=train.csv)
+In order to use the 3-pt RANSAC algorithm we upgrade the [PoseLib](https://github.com/vlarsson/PoseLib) library. 
+Severals modification have been done, all the modify files are available in the folder "/PoseLibeUpgrade".
+Note that in order to use our implementation of 3-pt RANSAC method you need to dowload the [PoseLib](https://github.com/vlarsson/PoseLib) library and change the according files before building (MAKE in c++) the library. We also modify the file that allow to use our implementation of PoseLib in Python.
 
-```
-python3 additional_dataset_2.py dataset2.csv
+### Gravity Estimation
 
-```
-Combine all datasets and output the resulting datasets into the 'Data' folder [WARNING: make sure you created the 'Data' folder as mentioned in section *Dataset*]:
-- for negative:
-```
-python3 combine_datasets.py Data/train_neg_full.txt Data/train_neg_add1.txt Data/train_neg_add2.txt train_neg_all_full.txt
+### Relative Pose Estimation
 
-```
-- for positive:
-```
-python3 combine_datasets.py Data/train_pos_full.txt Data/train_pos_add1.txt Data/train_pos_add2.txt train_pos_all_full.txt
+As mentioned in the report, we used 3 differents methods during this project:
 
-```
+1. The 5-pt RANSAC Algorithm
+2. The 3-pt RANSAC algorithm using ground truth gravity direction
+3. The 3-pt RANSAC algorithm using estimated gravity direction
 
-## Running Our Experiments
+Therefor we provide you the 3 scripts (.py) used in order to compute the relative pose from the ScanetDataset:
 
-Guidelines for running our experiments are presented here. We assume that the git-directory has been cloned on the Leonhard cluster, that the correct file structure has been set up (i.e. adding missing directories according to description above) and that the datasets have been downloaded and put in the Data directory. Our experiments will store the models in your personal scratch space ($SCRATCH). 
+1. 3p_poselib_upright.py: script computing the relative pose between using 3-pt RANSAC and ground truth gravity. The script run on a full scene, modifiy the scene path to get results for any scenes. You also need to generate the gravity estimation for the scene you want to test and link the path at the according place on the script.
+2. 3p_poselib_upright_estimated.py: script computing the relative pose between using 3-pt RANSAC and estimated gravity from UpRightNetModel. The script run on a full scene, modifiy the scene path to get results for any scenes.
+3. 5p_poselib.py: script computing the relative pose between using 5-pt RANSAC. The script run on a full scene, modifiy the scene path to get results for any scenes.
 
-### Further Preparations
+All files are available in the "/RelativePoseEstimation" folder.
 
-Load necessary modules:
-```
-module load gcc/6.3.0 python_gpu/3.8.5 eth_proxy
-```
-Create and start virtual environment:
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-Install dependencies (make sure to be in venv):
-```bash
-pip install -r requirements.txt
-```
+### Benchmark & Analysis
 
-### Preprocessing
-You can schedule all 10 preprocessing jobs by running:
-```
-source preprocess_all
-```
+The final part of the project was to analyse our results. To do so we used jupyter notebook rather than scripts as it is way more convenient for data and results investigation. We provide you 3 of the most important .ipynb we used to analyze our results:
 
-### Training
-First, the huggingface models have to be trained:
-```
-source train_huggingface
-```
-Once they are done, we can train the ensembles:
-```
-source train_ensembles
-```
+1. benchmarking_and_analysis_3p_estimated.ipynb: you can find the analysis of the results for the 3-pt RANSAC algo using estimated gravity. We mostly get and aggregate results for all scenes, compute statistics on the R_err distribution and also compute the correlationa and provide a scatter plot between the gravity_error from gravity estimation results with UpRightNet and the R_err from relative pose estimation results using 3-pt RANSAC. 
+2. benchmarking_and_analysis_3pVS5p.ipynb: you can find the analysis and comparison between the 5-pt RANSAC and the 3-pt RANSAC using ground truth. We plot severals distribution, analyze the running time, some correlation (R-err/running time, #key points/running time), the distribution or the R-err and more.
+3. OPENCV_5p_Analysis.html: this file is our first attempt to apply the 5-pt RANSAC algo. We used it to try different type of descriptos (we finally choose SIFT) but also to determine the gap we will use between the frame when computing the relative pose. This file is a more personal one, used for investigation only at the beginning of the project to have a better understanding of the challenges and methods.
 
-### Predictions
-As a last step, we create the predictions using the trained models:
-```
-source predict_all
-```
-
-## Miscellaneous
-I never manage to remember all of it, hence I put here a list of handy commands.
-
-### Virtual Environment & Dependencies
-
-Start virtual environment:
-```bash
-source venv/bin/activate
-```
-
-Exit virtual environment:
-```
-deactivate
-```
-Update requirements.txt:
-```
-pip list --format=freeze > requirements.txt
-```
-Install dependencies (make sure to be in venv):
-```bash
-pip install -r requirements.txt
-```
-
-### Leonhard Cluster
-
-Load modules:
-```
-module load gcc/6.3.0 python_gpu/3.8.5 eth_proxy
-```
-Reset modules:
-```
-module purge
-module load StdEnv
-```
-Submitting job:
-```
-bsub -R "rusage[mem=8192]" -R "rusage[ngpus_excl_p=1]" -oo output python3 main.py [args]
-```
-Submitting as interactive job for testing (output to terminal):
-```
-bsub -I -R "rusage[mem=8192]" -R "rusage[ngpus_excl_p=1]" python3 main.py [args]
-```
-Monitoring job:
-```
-bjobs
-bbjobs
-```
+Note that for file 1 and 2 all the results are present and described in the final report. For the file 3, we decided to not talk about it in our final report as we used this personnaly to get a better understanding of the project and the 5-pt RANSAC method (with BF matching and SIFT descriptors). All files are availables in the "/Benchmark" folder. Note that you can also find some of the figures we used in our final report (generated by those ipynb)
