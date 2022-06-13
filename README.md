@@ -50,6 +50,6 @@ We also provide you some partial example of the results you can get (only sample
 2. scene0000_00_final_results_5p_gap32.txt : results for scene 0000_00 for relative pose estimation using 5-pt RANSAC (frame gap: 32)
 3. scene0011_00_final_results_estimatedgravity_3p_gap32.txt: results for scene 0011_00 for relative pose estimation using 3-pt RANSAC and estimated gravity direction from UpRighNet results (frame gap: 32)
 4. scene0011_00_predicted_gravity: folder where you can observe results obtained from UpRightNet. For an image id you have the estimated gravity direction and the error (compared to ground truth)
-5. yolov3.png: this is the results table obtain from the Yolov3 analysis. It is produced by the yolov3_analysis.py script
+5. yolov3_output.png: this is the results table obtain from the Yolov3 analysis
 
 Note that all the uploaded results are partial for storage purpose. You can find them in the "/Results" folder
