@@ -16,6 +16,24 @@ Note that in order to use our implementation of 3-pt RANSAC method you need to d
 
 ### Gravity Estimation
 
+The complete gravity estimation folder was originally structured from a clone of the github implementation of UpRightNet.
+
+- The test.py file is a modified version of the test.py file in the original github to enable gravity vector prediction extraction and dumping the rot,roll,pitch error statistics in a pickle file.
+
+- The image_labels_[0-9].pickle files are lists of numbers corresponding to the tags found by the yolov3 model in the images, each image_labels pickle file contains 500 elements in order of the test_scannet/test_scannet_normal_list_4.txt file, totaling 5000 images (full dataset).
+
+- The results_final.pickle file contains a dictionnary of all the rot,roll,pitch errors in order of the test_scannet/test_scannet_normal_list_4.txt file
+
+- The util folder contains:
+    - a coco.names file a list of objects that the yolov3 model looks for in each image
+    - a script.py file, an export of the ipynb notebook file used to generate all the results and statistics, this file performs the study
+    - a yolov3.cfg file to load the yolov3 model with open-cv, a yolov3.weights file was also included but was too large to be upload, here is a polybox link to the used weights [yolov3.weights](https://polybox.ethz.ch/index.php/s/cOyTekyiPBC5jEd/download)
+    
+- The test_scannet folder contains:
+    - a evaluable_scenes folder which is the dataset from the github implementation, we have selected scenes totaling over 5000 images to build our dataset
+    - a generate_file_content.py file that generates the test_scannet_normal_list_4.txt file (or several files to split the dataset into several parts). It contains a list of paths which is then past to the data_loader-
+    - a generate_prediction_errors.py file which iterates on all predicted gravity vectors and ground truth vector to compute an error and stores it in the approriate folder (predictions_for_mj which is used to run 3point and 5point with the predicted vectors)
+    
 ### Relative Pose Estimation
 
 As mentioned in the report, we used 3 differents methods during this project:
